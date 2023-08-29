@@ -9,6 +9,7 @@ example.ipynb: $(SNIPPETS) example.md
                 -i chi-config.md \
 				example.md \
 				configure-resources.md \
+				offload-off.md \
 				log-in.md \
 				delete-slice.md \
                 -o example.ipynb  

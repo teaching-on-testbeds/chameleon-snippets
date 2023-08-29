@@ -208,7 +208,6 @@ Finally, we need to configure our resources, including software package installa
 
 :::
 
-
 ::: {.cell .code}
 ```python
 # configure an IP address on each port that is supposed to have one
