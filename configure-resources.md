@@ -4,14 +4,6 @@
 Now, we will prepare the VMs and network links that our experiment requires.
 :::
 
-
-::: {.cell .code}
-```python
-%load_ext autoreload
-%autoreload 2
-```
-:::
-
 ::: {.cell .markdown}
 First, we will prepare a "public" network that we will use for SSH access to our VMs - 
 :::
@@ -19,11 +11,11 @@ First, we will prepare a "public" network that we will use for SSH access to our
 
 ::: {.cell .code}
 ```python
-public_net = utils.ensure_network(os_conn, network_name="public-net-" + username)
+public_net = utils.ensure_network(os_conn, network_name="public_net_" + username)
 public_net_id = public_net.get("id")
 public_subnet = utils.ensure_subnet(
     os_conn,
-    name="public-subnet-" + username,
+    name="public_subnet_" + username,
     network_id=public_net.get("id"),
     ip_version='4',
     cidr="192.168.10.0/24",
@@ -50,7 +42,7 @@ for n in net_conf:
         network_id=exp_net_id,
         ip_version='4',
         cidr=n['subnet'],
-        enable_dhcp=True,
+        enable_dhcp=False,
         gateway_ip=None
     )
     nets.append(exp_net)
@@ -94,9 +86,9 @@ for i, n in enumerate(node_conf, start=10):
     image_uuid = os_conn.image.find_image(n['image']).id
     flavor_uuid = os_conn.compute.find_flavor(n['flavor']).id
     # find out details of exp interface(s)
-    nics = [{'net': chi.network.get_network_id( "exp_" + net['name']  + '_' + username ), 'v4-fixed-ip': node['addr']} for net in net_conf for node in net['nodes'] if node['name']==n['name']]
+    nics = [{'net-id': chi.network.get_network_id( "exp_" + net['name']  + '_' + username ), 'v4-fixed-ip': node['addr']} for net in net_conf for node in net['nodes'] if node['name']==n['name']]
     # also include a public network interface
-    nics.append({"net-id": public_net_id, "v4-fixed-ip":"192.168.10." + i})
+    nics.insert(0, {"net-id": public_net_id, "v4-fixed-ip":"192.168.10." + str(i)})
     server = utils.ensure_server(
         os_conn,
         name=n['name'] + "_" + username,
@@ -157,7 +149,6 @@ Note: The following cells assumes that a security group named “Allow SSH” al
 ```python
 port_ids = [port['id'] for port in chi.network.list_ports() if port['port_security_enabled'] and port['network_id']==public_net.get("id")]
 security_group_id = os_conn.get_security_group("Allow SSH").id
-
 ```
 :::
 
