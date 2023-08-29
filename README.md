@@ -15,7 +15,7 @@ For example, an experiment might:
 Also in this repository, there is an example of a `Makefile` that generates a complete Python notebook for Chameleon using these snippets (with an example experiment configuration that is defined in the Makefile).
 ### Defining the experiment configuration
 
-These snippets assume the experiment configuration is defined near the top of the notebook, including `slice_name`, `node_conf`, `net_conf`, and `route_conf` as in the following example:
+These snippets assume the experiment configuration is defined near the top of the notebook, including `node_conf`, `net_conf`, and `route_conf` as in the following example:
 
 ```python
 node_conf = [
