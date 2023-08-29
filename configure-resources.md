@@ -132,13 +132,14 @@ chi.network.add_subnet_to_router(router.get("id"), public_subnet.get("id"))
 ::: {.cell .code}
 ```python
 # prepare SSH access on the three servers
+# WARNING: this relies on undocumented behavior of associate_floating_ip 
+# that it associates the IP with the first port on the server
 server_ips = []
 for server_id in server_ids:
     ip = chi.server.associate_floating_ip(server_id)
     server_ips.append(ip)
 ```
 :::
-
 
 ::: {.cell .markdown}
 Note: The following cells assumes that a security group named “Allow SSH” already exists in your project, and is configured to allow SSH access on port 22. If you have done the “Hello, Chameleon” experiment then you already have this security group.
@@ -177,6 +178,14 @@ We also copy our account keys to all of the servers -
 
 ::: {.cell .code}
 ```python
+for ip in server_ips:
+    chi.server.wait_for_tcp(ip, port=22)
+```
+:::
+
+
+::: {.cell .code}
+```python
 server_remotes = [chi.ssh.Remote(ip) for ip in server_ips]
 ```
 :::
@@ -195,10 +204,27 @@ for kp in nova.keypairs.list():
 
 ::: {.cell .markdown}
 
-Finally, we need to configure our resources.
+Finally, we need to configure our resources, including software package installation and network configuration.
 
 :::
 
+
+::: {.cell .code}
+```python
+# configure an IP address on each port that is supposed to have one
+for port in chi.network.list_ports():
+    if port['network_id'] in net_ids:
+        i = server_ids.index(port['device_id'])
+        j = net_ids.index(port['network_id'])
+        port_conf =  [item for item in net_conf[j]['nodes'] if item['name'] == node_conf[i]['name'] ][0]
+        if port_conf['addr']:
+            server_remotes[i].run( "sudo ip addr flush dev $(ip --br link | grep '" + port['mac_address'] + "' | awk '{print $1}')" )
+            cmd_prefix = "sudo ip addr add " + port_conf['addr'] + "/" + net_conf[j]['subnet'].split("/")[1] 
+            server_remotes[i].run( cmd_prefix + " dev $(ip --br link | grep '" + port['mac_address'] + "' | awk '{print $1}')" )
+        else:
+            server_remotes[i].run( "sudo ip addr flush dev $(ip --br link | grep '" + port['mac_address'] + "' | awk '{print $1}')" )
+```
+:::
 
 ::: {.cell .code}
 ```python
@@ -207,9 +233,6 @@ for i, n in enumerate(node_conf):
     # enable forwarding
     remote.run(f"sudo sysctl -w net.ipv4.ip_forward=1") 
     remote.run(f"sudo ufw disable") 
-    # install packages
-    if len(n['packages']):
-            remote.run(f"sudo apt update; sudo apt -y install " + " ".join(n['packages'])) 
     # configure static routes
     for r in route_conf: 
         if n['name'] in r['nodes']:
@@ -217,6 +240,14 @@ for i, n in enumerate(node_conf):
 ```
 :::
 
+::: {.cell .code}
+```python
+for i, n in enumerate(node_conf):
+    # install packages
+    if len(n['packages']):
+            remote.run(f"sudo apt update; sudo apt -y install " + " ".join(n['packages'])) 
+```
+:::
 
 ::: {.cell .code}
 ```python
@@ -224,6 +255,6 @@ for i, n in enumerate(node_conf):
 hosts_txt = [ "%s\t%s" % ( n['addr'], n['name'] ) for net in net_conf  for n in net['nodes'] if type(n) is dict and n['addr']]
 for remote in server_remotes:
     for h in hosts_txt:
-        remote.execute("echo %s | sudo tee -a /etc/hosts > /dev/null" % h)
+        remote.run("echo %s | sudo tee -a /etc/hosts > /dev/null" % h)
 ```
 :::

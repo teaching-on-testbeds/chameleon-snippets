@@ -37,7 +37,6 @@ chi.network.delete_router(router.get("id"))
 
 ::: {.cell .code}
 ```python
-
 # delete the public network
 chi.network.delete_subnet(public_subnet.get('id'))
 chi.network.delete_network(public_net.get("id"))
