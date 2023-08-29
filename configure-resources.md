@@ -11,15 +11,15 @@ First, we will prepare a "public" network that we will use for SSH access to our
 
 ::: {.cell .code}
 ```python
-public_net = utils.ensure_network(os_conn, network_name="public_net_" + username)
+public_net = os_conn.network.create_network(name="public_net_" + username)
 public_net_id = public_net.get("id")
-public_subnet = utils.ensure_subnet(
-    os_conn,
+public_subnet = os_conn.network.create_subnet(
     name="public_subnet_" + username,
     network_id=public_net.get("id"),
     ip_version='4',
     cidr="192.168.10.0/24",
-    gateway_ip="192.168.10.1"
+    gateway_ip="192.168.10.1",
+    is_dhcp_enabled = True
 )
 ```
 :::
@@ -34,42 +34,20 @@ nets = []
 net_ids = []
 subnets = []
 for n in net_conf:
-    exp_net  = utils.ensure_network(os_conn, network_name="exp_" + n['name']  + '_' + username)
+    exp_net = os_conn.network.create_network(name="exp_" + n['name']  + '_' + username)
     exp_net_id = exp_net.get("id")
-    exp_subnet = utils.ensure_subnet(
-        os_conn,
+    os_conn.network.update_network(exp_net, is_port_security_enabled=False)
+    exp_subnet = os_conn.network.create_subnet(
         name="exp_subnet_" + n['name']  + '_' + username,
-        network_id=exp_net_id,
+        network_id=exp_net.get("id"),
         ip_version='4',
         cidr=n['subnet'],
-        enable_dhcp=False,
-        gateway_ip=None
+        gateway_ip=None,
+        is_dhcp_enabled = False
     )
     nets.append(exp_net)
     net_ids.append(exp_net_id)
     subnets.append(exp_subnet)
-```
-:::
-
-
-::: {.cell .markdown}
-We also need to disable the default security settings on the "experiment" links - 
-:::
-
-
-::: {.cell .code}
-```python
-%%bash -s "$PROJECT_NAME" "{" ".join(net_ids)}"
-export OS_PROJECT_NAME=$1
-export OS_AUTH_URL=https://kvm.tacc.chameleoncloud.org:5000/v3
-export OS_REGION_NAME=KVM@TACC
-access_token=$(curl -s -H"authorization: token $JUPYTERHUB_API_TOKEN" "$JUPYTERHUB_API_URL/users/$JUPYTERHUB_USER" | jq -r .auth_state.access_token)
-export OS_ACCESS_TOKEN="$access_token"
-
-for i in $2
-do
-    openstack network set --disable-port-security "$i"
-done
 ```
 :::
 
@@ -89,9 +67,8 @@ for i, n in enumerate(node_conf, start=10):
     nics = [{'net-id': chi.network.get_network_id( "exp_" + net['name']  + '_' + username ), 'v4-fixed-ip': node['addr']} for net in net_conf for node in net['nodes'] if node['name']==n['name']]
     # also include a public network interface
     nics.insert(0, {"net-id": public_net_id, "v4-fixed-ip":"192.168.10." + str(i)})
-    server = utils.ensure_server(
-        os_conn,
-        name=n['name'] + "_" + username,
+    server = chi.server.create_server(
+        server_name=n['name'] + "_" + username,
         image_id=image_uuid,
         flavor_id=flavor_uuid,
         nics=nics
@@ -148,25 +125,10 @@ Note: The following cells assumes that a security group named “Allow SSH” al
 
 ::: {.cell .code}
 ```python
-port_ids = [port['id'] for port in chi.network.list_ports() if port['port_security_enabled'] and port['network_id']==public_net.get("id")]
 security_group_id = os_conn.get_security_group("Allow SSH").id
-```
-:::
-
-
-::: {.cell .code}
-```python
-%%bash -s "$PROJECT_NAME" "$security_group_id" "{" ".join(port_ids)}"
-export OS_PROJECT_NAME=$1
-export OS_AUTH_URL=https://kvm.tacc.chameleoncloud.org:5000/v3
-export OS_REGION_NAME=KVM@TACC
-access_token=$(curl -s -H"authorization: token $JUPYTERHUB_API_TOKEN" "$JUPYTERHUB_API_URL/users/$JUPYTERHUB_USER" | jq -r .auth_state.access_token)
-export OS_ACCESS_TOKEN="$access_token"
-
-for i in $3
-do
-    openstack port set "$i" --security-group "$2"
-done
+for port in chi.network.list_ports(): 
+    if port['port_security_enabled'] and port['network_id']==public_net.get("id"):
+        os_conn.network.update_port(port['id'], security_groups=[security_group_id])
 ```
 :::
 
