@@ -5,7 +5,7 @@
 
 ::: {.cell .code}
 ```python
-import openstack, chi, chi.ssh, os    
+import openstack, chi, chi.ssh, chi.network, chi.server, os
 ```
 :::
 
