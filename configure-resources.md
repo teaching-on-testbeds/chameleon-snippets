@@ -108,7 +108,7 @@ chi.network.add_subnet_to_router(router.get("id"), public_subnet.get("id"))
 
 ::: {.cell .code}
 ```python
-# prepare SSH access on the three servers
+# prepare SSH access on the servers
 # WARNING: this relies on undocumented behavior of associate_floating_ip 
 # that it associates the IP with the first port on the server
 server_ips = []
