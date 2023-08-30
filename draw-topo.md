@@ -4,7 +4,7 @@
 :::
 
 ::: {.cell .markdown}
-The following cell will draw the network topology, for your reference.
+The following cells will draw the network topology, for your reference.
 :::
 
 
@@ -18,7 +18,8 @@ The following cell will draw the network topology, for your reference.
 ::: {.cell .code}
 ```python
 nodes = [ (n['name'], {'color': 'pink'}) for n in net_conf ] + [(n['name'], {'color': 'lightblue'}) for n in node_conf ]
-edges = [(net['name'], node['name']) for net in net_conf for node in net['nodes'] ]```
+edges = [(net['name'], node['name']) for net in net_conf for node in net['nodes'] ]
+```
 :::
 
 
