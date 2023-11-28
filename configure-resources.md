@@ -133,11 +133,6 @@ for port in chi.network.list_ports():
 :::
 
 
-::: {.cell .markdown}
-We also copy our account keys to all of the servers - 
-:::
-
-
 ::: {.cell .code}
 ```python
 for ip in server_ips:
@@ -145,29 +140,16 @@ for ip in server_ips:
 ```
 :::
 
+::: {.cell .markdown}
+
+Finally, we need to configure our resources, including software package installation and network configuration.
+
+:::
 
 ::: {.cell .code}
 ```python
 server_remotes = [chi.ssh.Remote(ip) for ip in server_ips]
 ```
-:::
-
-
-::: {.cell .code}
-```python
-nova=chi.clients.nova()
-# iterate over all keypairs in this account
-for kp in nova.keypairs.list(): 
-    public_key = nova.keypairs.get(kp.name).public_key 
-    for remote in server_remotes:
-        remote.run(f"echo {public_key} >> ~/.ssh/authorized_keys")     
-```
-:::
-
-::: {.cell .markdown}
-
-Finally, we need to configure our resources, including software package installation and network configuration.
-
 :::
 
 ::: {.cell .code}
