@@ -188,6 +188,7 @@ for i, n in enumerate(node_conf):
 for i, n in enumerate(node_conf):
     # install packages
     if len(n['packages']):
+            remote = server_remotes[i]
             remote.run(f"sudo apt update; sudo apt -y install " + " ".join(n['packages'])) 
 ```
 :::
