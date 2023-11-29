@@ -11,6 +11,7 @@ When you finish your experiment, you should delete your resources! The following
 ```python
 # delete the nodes
 server_ids = [chi.server.get_server_id(n['name'] + "_" + username) for n in node_conf]
+server_ips = [d['addr'] for s in server_ids for d in chi.server.show_server(s).addresses['public_net_' + username] if d['OS-EXT-IPS:type']=='floating']
 for server_id in server_ids:
     chi.server.delete_server(server_id)
 ```
@@ -20,7 +21,6 @@ for server_id in server_ids:
 ::: {.cell .code}
 ```python
 # release the floating IP addresses used for SSH
-server_ips = [d['addr'] for s in server_ids for d in chi.server.show_server(s).addresses['public_net_' + username] if d['OS-EXT-IPS:type']=='floating']
 for server_ip in server_ips:
     ip_details = chi.network.get_floating_ip(server_ip)
     chi.neutron().delete_floatingip(ip_details["id"])
