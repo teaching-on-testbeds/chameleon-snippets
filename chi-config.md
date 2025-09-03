@@ -11,6 +11,7 @@ from chi import server
 from chi import context
 from chi import hardware
 from chi import network
+from chi import ssh
 ```
 :::
 
