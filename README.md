@@ -19,11 +19,11 @@ These snippets assume the experiment configuration is defined near the top of th
 
 ```python
 node_conf = [
- {'name': "romeo",   'flavor': 'm1.small', 'image': 'CC-Ubuntu20.04', 'packages': ['mtr']}, 
- {'name': "juliet",  'flavor': 'm1.small', 'image': 'CC-Ubuntu20.04', 'packages': []}, 
- {'name': "hamlet",  'flavor': 'm1.small', 'image': 'CC-Ubuntu20.04', 'packages': []}, 
- {'name': "ophelia", 'flavor': 'm1.small', 'image': 'CC-Ubuntu20.04','packages': []}, 
- {'name': "router",  'flavor': 'm1.small', 'image': 'CC-Ubuntu20.04', 'packages': []}
+ {'name': "romeo",   'flavor': 'm1.small', 'image': 'CC-Ubuntu24.04', 'duration': 6, 'packages': ['mtr']}, 
+ {'name': "juliet",  'flavor': 'm1.small', 'image': 'CC-Ubuntu24.04', 'duration': 6, 'packages': []}, 
+ {'name': "hamlet",  'flavor': 'm1.small', 'image': 'CC-Ubuntu24.04', 'duration': 6, 'packages': []}, 
+ {'name': "ophelia", 'flavor': 'm1.small', 'image': 'CC-Ubuntu24.04', 'duration': 6, 'packages': []}, 
+ {'name': "router",  'flavor': 'm1.small', 'image': 'CC-Ubuntu24.04', 'duration': 6, 'packages': []}
 ]
 net_conf = [
  {"name": "net0", "subnet": "10.0.0.0/24", "nodes": [{"name": "romeo",   "addr": "10.0.0.100"}, {"name": "juliet", "addr": None}, {"name": "router", "addr": "10.0.0.10"}]},
