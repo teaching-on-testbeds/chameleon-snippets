@@ -5,7 +5,12 @@
 
 ::: {.cell .code}
 ```python
-import openstack, chi, chi.ssh, chi.network, chi.server, os
+import chi, os, time, datetime
+from chi import lease
+from chi import server
+from chi import context
+from chi import hardware
+from chi import network
 ```
 :::
 
@@ -20,7 +25,7 @@ We also need to specify the name of the Chameleon "project" that this experiment
 
 
 ::: {.cell .markdown}
-In the cell below, replace the project ID with your own project ID, then run the cell.
+In the cell below, select the correct project ID, then run the cell.
 
 :::
 
@@ -28,9 +33,10 @@ In the cell below, replace the project ID with your own project ID, then run the
 
 ::: {.cell .code}
 ```python
-chi.use_site("KVM@TACC")
-PROJECT_NAME = "CHI-XXXXXX"
-chi.set("project_name", PROJECT_NAME)
+context.version = "1.0" 
+context.choose_project()
+context.choose_site(default="KVM@TACC")
+username = os.getenv('USER') # all exp resources will have this suffix
 
 # configure openstacksdk for actions unsupported by python-chi
 os_conn = chi.clients.connection()
