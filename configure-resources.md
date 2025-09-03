@@ -61,8 +61,15 @@ Now we create the VMs -
 servers = []
 server_ids = []
 for i, n in enumerate(node_conf, start=10):
+
+    # reserve the node
+    l = lease.Lease(n['name'] + "_" + username, duration=datetime.timedelta(hours=n.get('duration', 6)))
+    l.add_flavor_reservation(id=chi.server.get_flavor_id("m1.small"), amount=1)
+    l.submit(idempotent=True)
+    flavor_uuid = l.get_reserved_flavors()[0].id
+    
     image_uuid = os_conn.image.find_image(n['image']).id
-    flavor_uuid = os_conn.compute.find_flavor(n['flavor']).id
+
     # find out details of exp interface(s)
     nics = [{'net-id': chi.network.get_network_id( "exp_" + net['name']  + '_' + username ), 'v4-fixed-ip': node['addr']} for net in net_conf for node in net['nodes'] if node['name']==n['name']]
     # also include a public network interface
